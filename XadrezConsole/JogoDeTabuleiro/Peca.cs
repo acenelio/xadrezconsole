@@ -18,10 +18,10 @@
         }
 
         public bool ehPossivelMover() {
-            bool[][] mat = movimentosPossiveis();
-            for (int i = 0; i < 8; i++) {
-                for (int j = 0; j < 8; j++) {
-                    if (mat[i][j]) {
+            Grade grade = movimentosPossiveis();
+            for (int i = 0; i < tab.getLinhas(); i++) {
+                for (int j = 0; j < tab.getColunas(); j++) {
+                    if (grade.ligada(i,j)) {
                         return true;
                     }
                 }
@@ -30,11 +30,10 @@
         }
 
         public bool podeMoverPara(Posicao pos) {
-            bool[][] mat = movimentosPossiveis();
-            return mat[pos.linha][pos.coluna];
+            Grade grade = movimentosPossiveis();
+            return grade.ligada(pos);
         }
 
-        public abstract bool desbloqueada(Posicao pos);
-        public abstract bool[][] movimentosPossiveis();
+        public abstract Grade movimentosPossiveis();
     }
 }

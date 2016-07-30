@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using ProfessorNelioAlves.JogoDeTabuleiro;
-using System;
 
 namespace ProfessorNelioAlves.JogoDeXadrez {
     class PartidaDeXadrez {
@@ -103,7 +102,17 @@ namespace ProfessorNelioAlves.JogoDeXadrez {
         }
 
         private bool testeXeque(Cor cor) {
-            return true;
+            Grade grade = new Grade(8,8);
+            ISet<Peca> pecasAdversarias = pecasEmJogo(XadrezUtil.adversario(cor));
+            foreach (Peca peca in pecasAdversarias) {
+                Grade outra = peca.movimentosPossiveis();
+                grade.somar(outra);
+            }
+            Peca rei = getRei(cor);
+            if (rei==null) {
+                throw new TabuleiroException("Nao existe rei dentre as pecas " + cor);
+            }
+            return grade.ligada(rei.getPosicao());
         }
 
         private bool testeXequeMate(Cor cor) {
@@ -120,18 +129,31 @@ namespace ProfessorNelioAlves.JogoDeXadrez {
         }
 
         private void instanciarPecas() {
-            colocarPecaXadrez('d', 1, new Rei(Cor.Branca, tab));
+            colocarPecaXadrez('a', 2, new Peao(Cor.Branca, tab));
+            colocarPecaXadrez('b', 2, new Peao(Cor.Branca, tab));
+            colocarPecaXadrez('c', 2, new Peao(Cor.Branca, tab));
+            colocarPecaXadrez('d', 2, new Peao(Cor.Branca, tab));
+            colocarPecaXadrez('e', 2, new Peao(Cor.Branca, tab));
+            colocarPecaXadrez('f', 2, new Peao(Cor.Branca, tab));
+            colocarPecaXadrez('g', 2, new Peao(Cor.Branca, tab));
+            colocarPecaXadrez('h', 2, new Peao(Cor.Branca, tab));
             colocarPecaXadrez('e', 1, new Rei(Cor.Branca, tab));
-            colocarPecaXadrez('f', 1, new Rei(Cor.Branca, tab));
-            colocarPecaXadrez('d', 2, new Rei(Cor.Branca, tab));
-            colocarPecaXadrez('e', 2, new Rei(Cor.Branca, tab));
-            colocarPecaXadrez('f', 2, new Rei(Cor.Branca, tab));
+
+            colocarPecaXadrez('a', 7, new Peao(Cor.Preta, tab));
+            colocarPecaXadrez('b', 7, new Peao(Cor.Preta, tab));
+            colocarPecaXadrez('c', 7, new Peao(Cor.Preta, tab));
+            colocarPecaXadrez('d', 7, new Peao(Cor.Preta, tab));
+            colocarPecaXadrez('e', 7, new Peao(Cor.Preta, tab));
+            colocarPecaXadrez('f', 7, new Peao(Cor.Preta, tab));
+            colocarPecaXadrez('g', 7, new Peao(Cor.Preta, tab));
+            colocarPecaXadrez('h', 7, new Peao(Cor.Preta, tab));
             colocarPecaXadrez('e', 8, new Rei(Cor.Preta, tab));
         }
 
         private void colocarPecaXadrez(char coluna, int linha, Peca peca) {
             Posicao pos = new PosicaoXadrez(coluna, linha).toPosicao();
             tab.colocarPeca(pos, peca);
+            pecas.Add(peca);
         }
 
         public ISet<Peca> pecasEmJogo(Cor cor) {
@@ -154,5 +176,15 @@ namespace ProfessorNelioAlves.JogoDeXadrez {
             }
             return aux;
         }
+
+        private Peca getRei(Cor cor) {
+            ISet<Peca> aux = pecasEmJogo(cor);
+            foreach (Peca p in aux) {
+                if (p is Rei) {
+                    return p;
+                }
+            }
+            return null;
+        } 
     }
 }

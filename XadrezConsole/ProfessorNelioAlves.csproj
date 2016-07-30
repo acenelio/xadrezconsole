@@ -46,10 +46,12 @@
     <Compile Include="JogoDeTabuleiro\AcaoInvalidaException.cs" />
     <Compile Include="JogoDeTabuleiro\Cor.cs" />
     <Compile Include="JogoDeTabuleiro\Peca.cs" />
+    <Compile Include="JogoDeTabuleiro\Grade.cs" />
     <Compile Include="JogoDeXadrez\JogadaXadrez.cs" />
     <Compile Include="JogoDeXadrez\PartidaDeXadrez.cs" />
     <Compile Include="JogoDeTabuleiro\Posicao.cs" />
     <Compile Include="JogoDeTabuleiro\PosicaoInvalidaException.cs" />
+    <Compile Include="JogoDeXadrez\Peao.cs" />
     <Compile Include="JogoDeXadrez\PosicaoXadrez.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
