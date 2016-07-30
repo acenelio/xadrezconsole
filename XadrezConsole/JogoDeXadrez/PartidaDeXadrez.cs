@@ -7,16 +7,20 @@ namespace ProfessorNelioAlves.JogoDeXadrez {
         private int turno;
         private Cor jogadorAtual;
         private bool terminada;
+        private bool emXeque;
         private IList<JogadaXadrez> historico;
         private ISet<Peca> pecas;
+        private ISet<Peca> capturadas;
 
         public PartidaDeXadrez() {
             tab = new Tabuleiro(8, 8);
             turno = 1;
             jogadorAtual = Cor.Branca;
             terminada = false;
+            emXeque = false;
             historico = new List<JogadaXadrez>();
             pecas = new HashSet<Peca>();
+            capturadas = new HashSet<Peca>();
             instanciarPecas();
         }
 
@@ -34,6 +38,10 @@ namespace ProfessorNelioAlves.JogoDeXadrez {
 
         public bool getTerminada() {
             return terminada;
+        }
+
+        public bool getEmXeque() {
+            return emXeque;
         }
 
         public IList<JogadaXadrez> getHistorico() {
@@ -54,6 +62,17 @@ namespace ProfessorNelioAlves.JogoDeXadrez {
             }
         }
 
+        public void validarDestino(PosicaoXadrez origem, PosicaoXadrez destino) {
+            Posicao posOrigem = origem.toPosicao();
+            Posicao posDestino = destino.toPosicao();
+
+            Peca p1 = tab.getPeca(posOrigem);
+
+            if (!p1.podeMoverPara(posDestino)) {
+                throw new AcaoInvalidaException("Posicao de destino invalida.");
+            }
+        }
+
         public void realizarJogada(PosicaoXadrez origem, PosicaoXadrez destino) {
             bool xeque = false;
             bool xequeMate = false;
@@ -61,32 +80,19 @@ namespace ProfessorNelioAlves.JogoDeXadrez {
             Posicao posOrigem = origem.toPosicao();
             Posicao posDestino = destino.toPosicao();
 
-            Peca p1 = tab.getPeca(posOrigem);
-
-            if (!p1.podeMoverPara(posDestino)) {
-                throw new AcaoInvalidaException("Posicao de destino invalida. Jogada cancelada.");
-            }
-
-            // realiza o movimento
-            Peca p2 = tab.getPeca(posDestino);
-            if (p2 != null) {
-                p2 = tab.retirarPeca(posDestino);
-            }
-            p1 = tab.retirarPeca(posOrigem);
-            tab.colocarPeca(posDestino, p1);
+            Peca pecaCapturada = executaMovimento(posOrigem, posDestino);
 
             if (testeXeque(jogadorAtual)) {
-                // desfaz o movimento
-                p1 = tab.retirarPeca(posDestino);
-                if (p2 != null) {
-                    tab.colocarPeca(posDestino, p2);
-                }
-                tab.colocarPeca(posOrigem, p1);
+                desfazMovimento(posOrigem, posDestino, pecaCapturada);
                 throw new AcaoInvalidaException("Voce nao pode se colocar em xeque");
             }
 
             if (testeXeque(XadrezUtil.adversario(jogadorAtual))) {
                 xeque = true;
+                emXeque = true;
+            }
+            else {
+                emXeque = false;
             }
 
             if (testeXequeMate(XadrezUtil.adversario(jogadorAtual))) {
@@ -98,7 +104,7 @@ namespace ProfessorNelioAlves.JogoDeXadrez {
                 trocaJogador();
             }
 
-            historico.Insert(historico.Count, new JogadaXadrez(origem, destino, p2, xeque, xequeMate));
+            historico.Insert(historico.Count, new JogadaXadrez(origem, destino, pecaCapturada, xeque, xequeMate));
         }
 
         private bool testeXeque(Cor cor) {
@@ -115,8 +121,49 @@ namespace ProfessorNelioAlves.JogoDeXadrez {
             return grade.ligada(rei.getPosicao());
         }
 
+        private Peca executaMovimento(Posicao origem, Posicao destino) {
+            Peca p1 = tab.retirarPeca(origem);
+            Peca pecaCapturada = tab.retirarPeca(destino);
+            tab.colocarPeca(destino, p1);
+            if (pecaCapturada != null) {
+                capturadas.Add(pecaCapturada);
+            }
+            return pecaCapturada;
+        }
+
+        private void desfazMovimento(Posicao origem, Posicao destino, Peca pecaCapturada) {
+            Peca p1 = tab.retirarPeca(destino);
+            if (pecaCapturada != null) {
+                tab.colocarPeca(destino, pecaCapturada);
+                capturadas.Remove(pecaCapturada);
+            }
+            tab.colocarPeca(origem, p1);
+        }
+
         private bool testeXequeMate(Cor cor) {
-            return false;
+            if (!testeXeque(cor)) {
+                return false;
+            } 
+
+            ISet<Peca> pecasDestaCor = pecasEmJogo(cor);
+            foreach (Peca p in pecasDestaCor) {
+                Grade grade = p.movimentosPossiveis();
+                for (int i=0; i<8; i++) {
+                    for (int j=0; j<8; j++) {
+                        if (grade.ligada(i,j)) {
+                            Posicao origem = p.getPosicao();
+                            Posicao destino = new Posicao(i, j);
+                            Peca pecaCapturada = executaMovimento(origem, destino);
+                            bool tx = testeXeque(cor);
+                            desfazMovimento(origem, destino, pecaCapturada);
+                            if (!tx) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
         }
 
         private void trocaJogador() {
@@ -129,25 +176,19 @@ namespace ProfessorNelioAlves.JogoDeXadrez {
         }
 
         private void instanciarPecas() {
-            colocarPecaXadrez('a', 2, new Peao(Cor.Branca, tab));
-            colocarPecaXadrez('b', 2, new Peao(Cor.Branca, tab));
-            colocarPecaXadrez('c', 2, new Peao(Cor.Branca, tab));
-            colocarPecaXadrez('d', 2, new Peao(Cor.Branca, tab));
-            colocarPecaXadrez('e', 2, new Peao(Cor.Branca, tab));
-            colocarPecaXadrez('f', 2, new Peao(Cor.Branca, tab));
-            colocarPecaXadrez('g', 2, new Peao(Cor.Branca, tab));
-            colocarPecaXadrez('h', 2, new Peao(Cor.Branca, tab));
+            colocarPecaXadrez('a', 1, new Torre(Cor.Branca, tab));
+            colocarPecaXadrez('c', 1, new Torre(Cor.Branca, tab));
+            colocarPecaXadrez('h', 2, new Torre(Cor.Branca, tab));
             colocarPecaXadrez('e', 1, new Rei(Cor.Branca, tab));
 
             colocarPecaXadrez('a', 7, new Peao(Cor.Preta, tab));
-            colocarPecaXadrez('b', 7, new Peao(Cor.Preta, tab));
             colocarPecaXadrez('c', 7, new Peao(Cor.Preta, tab));
             colocarPecaXadrez('d', 7, new Peao(Cor.Preta, tab));
             colocarPecaXadrez('e', 7, new Peao(Cor.Preta, tab));
             colocarPecaXadrez('f', 7, new Peao(Cor.Preta, tab));
             colocarPecaXadrez('g', 7, new Peao(Cor.Preta, tab));
             colocarPecaXadrez('h', 7, new Peao(Cor.Preta, tab));
-            colocarPecaXadrez('e', 8, new Rei(Cor.Preta, tab));
+            colocarPecaXadrez('b', 8, new Rei(Cor.Preta, tab));
         }
 
         private void colocarPecaXadrez(char coluna, int linha, Peca peca) {
@@ -169,9 +210,9 @@ namespace ProfessorNelioAlves.JogoDeXadrez {
 
         public ISet<Peca> pecasCapturadas(Cor cor) {
             ISet<Peca> aux = new HashSet<Peca>();
-            foreach (JogadaXadrez j in historico) {
-                if (j.getPecaCapturada()!=null && j.getPecaCapturada().getCor()==cor) {
-                    bool ok = aux.Add(j.getPecaCapturada());
+            foreach (Peca p in capturadas) {
+                if (p.getCor()==cor) {
+                    bool ok = aux.Add(p);
                 }
             }
             return aux;

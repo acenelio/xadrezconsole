@@ -53,6 +53,7 @@
     <Compile Include="JogoDeTabuleiro\PosicaoInvalidaException.cs" />
     <Compile Include="JogoDeXadrez\Peao.cs" />
     <Compile Include="JogoDeXadrez\PosicaoXadrez.cs" />
+    <Compile Include="JogoDeXadrez\Torre.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="JogoDeXadrez\Rei.cs" />

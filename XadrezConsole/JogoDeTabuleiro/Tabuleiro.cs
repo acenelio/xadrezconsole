@@ -50,7 +50,7 @@
 
         public Peca retirarPeca(Posicao pos) {
             if (!existePeca(pos)) {
-                throw new AcaoInvalidaException("Erro ao retirar peca. Nao existe uma peca em " + pos);
+                return null;
             }
             Peca aux = pecas[pos.linha][pos.coluna];
             aux.setPosicao(null);

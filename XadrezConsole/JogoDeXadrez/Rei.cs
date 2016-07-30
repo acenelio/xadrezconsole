@@ -20,7 +20,7 @@ namespace ProfessorNelioAlves.JogoDeXadrez {
 
         public override Grade movimentosPossiveis() {
             if (posicao == null) {
-                throw new AcaoInvalidaException("Erro: tentou-se verificar os movimentos possiveis de uma peca que nao estah no tabuleiro.");
+                throw new AcaoInvalidaException("Erro: tentou-se verificar os movimentos possiveis de uma peca que nao estah no tabuleiro: " + this);
             }
             tab.validarPosicao(posicao); // nunca deveria dar erro aqui, mas... just in case
 

@@ -25,6 +25,8 @@ namespace ProfessorNelioAlves {
 
                     partida.validarPecaEscolhida(origem);
 
+                    imprimirPossiveis(partida, origem.toPosicao());
+
                     Console.WriteLine("Deseja mover a peça para qual posicao: ");
                     Console.Write("Coluna: ");
                     colunaDestino = Convert.ToChar(Console.ReadLine());
@@ -32,6 +34,8 @@ namespace ProfessorNelioAlves {
                     linhaDestino = Convert.ToInt32(Console.ReadLine());
 
                     destino = new PosicaoXadrez(colunaDestino, linhaDestino);
+
+                    partida.validarDestino(origem, destino);
 
                     partida.realizarJogada(origem, destino);
                 }
@@ -41,6 +45,7 @@ namespace ProfessorNelioAlves {
                     Console.WriteLine();
                 }
             }
+            imprimirConsole(partida);
             Console.ReadLine();
         }
 
@@ -62,7 +67,15 @@ namespace ProfessorNelioAlves {
             }
             Console.WriteLine("  a b c d e f g h\n");
             Console.WriteLine("Turno: " + partida.getTurno());
-            Console.WriteLine("Quem joga: " + partida.getJogadorAtual());
+            if (partida.getTerminada()) {
+                Console.WriteLine("CHEQUEMATE!");
+            }
+            else {
+                Console.WriteLine("Quem joga: " + partida.getJogadorAtual());
+                if (partida.getEmXeque()) {
+                    Console.WriteLine("CHEQUE!");
+                }
+            }
             Console.WriteLine();
         }
 
@@ -78,5 +91,45 @@ namespace ProfessorNelioAlves {
                 Console.Write(peca);
             }
         }
+
+        static void imprimirPossiveis(PartidaDeXadrez partida, Posicao posOrigem) {
+            Tabuleiro tab = partida.getTabuleiro();
+            Grade grade = tab.getPeca(posOrigem).movimentosPossiveis();
+            for (int i = 0; i < 8; i++) {
+                Console.Write(8 - i + " ");
+                for (int j = 0; j < 8; j++) {
+                    Posicao pos = new Posicao(i, j);
+                    imprimirConsole(tab.getPeca(pos), grade.ligada(i, j));
+                    Console.Write(" ");
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine("  a b c d e f g h\n");
+            Console.WriteLine("Turno: " + partida.getTurno());
+            Console.WriteLine("Quem joga: " + partida.getJogadorAtual());
+            Console.WriteLine();
+        }
+
+        static void imprimirConsole(Peca peca, bool ligada) {
+            ConsoleColor bg = Console.BackgroundColor;
+            ConsoleColor fg = Console.ForegroundColor;
+            if (ligada) {
+                Console.BackgroundColor = ConsoleColor.DarkGray;
+            }
+
+            if (peca!=null && peca.getCor() == Cor.Preta) {
+                Console.ForegroundColor = ConsoleColor.Blue;
+            }
+
+            if (peca==null) {
+                Console.Write("-");
+            }
+            else {
+                Console.Write(peca);
+            }
+            Console.BackgroundColor = bg;
+            Console.ForegroundColor = fg;
+        }
+
     }
 }
